@@ -1,0 +1,25 @@
+---
+title: "Classifier Naïve Bayes"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(mgcv)
+library(gratia)
+library(ggplot2)
+library(bnlearn)
+library(dplyr)
+```
+
+
+```{r}
+data = read_delim("prueba_all_stories.csv")
+```
+
+```{r}
+head(data)
+summary(data)
+```
+

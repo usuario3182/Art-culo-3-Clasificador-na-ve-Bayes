@@ -1,44 +1,286 @@
 ---
 title: "Web Scrapping"
 format: html
-editor: visual
+editor: source
 ---
+
+# Previo al Web Scrapping y notas de videos
+
+Las categorías son y el número dentro de ellas son:
+Ghost Stories by categories
+A Haunted Life (578)
+Apparitions / Voices / Touches (6419)
+Children Who See Spirits (376)
+Demons / Possessions / Exorcisms (237)
+Family / Friends Visits (1781)
+Ghost Hunting (214)
+Ghost Tours & Haunted Hotels (142)
+Haunted Items (92)
+Haunted Places (4850)
+Misc (2105)
+Non Human Entities (334)
+Old Hags / Night Attacks / Sleep Paralysis (744)
+Orbs / Lights / Mists (311)
+Ouija Board / Seances (387)
+Pets / Animals (407)
+Photographs / Videos / EVP (157)
+Poltergeists / Physical Manifestations (291)
+Psychic / Medium (362)
+Shadow People (126)
+Succubus / Incubus / Sexual Ghosts (193)
+
+Fuente: https://www.yourghoststories.com/real-ghost-stories.php 
+
+
+Verificamos que sea posible escrapear la página:
+
+```{r}
+library(robotstxt)
+library(rvest)
+
+# Página principal de Your Ghost Stories
+paths_allowed("https://www.yourghoststories.com/")
+```
+
+El valor _TRUE_ nos indica que sí.
+
+Para leer páginas, utilizamos:
+```{r}
+page = read_html("https://www.yourghoststories.com/real-ghost-story.php?story=28549")
+page
+```
+
+Usando la librería *rvest*, identificamos el nodo, extraemos los párrafos y los concatenamos. 
+
+```{r}
+# Leer la página
+page <- read_html("https://www.yourghoststories.com/real-ghost-story.php?story=28549")
+
+# Seleccionar todos los párrafos dentro del div con id "story"
+paragraphs <- page %>% html_nodes("#story p") %>% html_text()
+
+# Unirlos en un solo texto
+story_text <- paste(paragraphs, collapse = "\n\n")
+
+cat(story_text)
+
+```
+
+# Scrapping
+
+## Estraemos las urls de que marcan las categorías
+
+```{r}
+library(rvest)
+library(stringr)
+library(dplyr)
+library(purrr)
+
+main_url <- "https://www.yourghoststories.com/real-ghost-stories.php"
+page <- read_html(main_url)
+
+# Seleccionar todos los <li> dentro de <ul.listresults>
+lis <- page %>% html_nodes("ul.listresults li")
+
+# Tomar solo los primeros 15, que son las categorías paranormales
+lis_categories <- lis[1:20]
+
+# Extraer nombre y URL de cada <li>
+categories_df <- map_df(lis_categories, function(li) {
+  a_tag <- li %>% html_node("a")
+  
+  if (!is.na(a_tag)) {
+    data.frame(
+      category = a_tag %>% html_text(trim = TRUE),
+      url = a_tag %>% html_attr("href") %>% 
+            str_replace_all("^\\\\", "") %>%   # quitar \ inicial si existe
+            str_c("https://www.yourghoststories.com/", .),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    NULL
+  }
+})
+
+categories_df
+
+```
+
+## Realizamos el scrapping de 100 historias por las 20 categorías de las páginas
 
 ```{r}
 library(rvest)
 library(dplyr)
 library(stringr)
+library(purrr)
 
-get_stories_page <- function(page_url) {
-  tryCatch({
-    page <- read_html(page_url)
+# --- Función para extraer links de todas las páginas de una categoría ---
+get_story_links <- function(category_base_url, max_stories = 500) {
+  page_num <- 1
+  all_links <- c()
+  
+  repeat {
+    url <- str_replace(category_base_url, "page=1", paste0("page=", page_num))
+    page <- tryCatch(read_html(url), error = function(e) return(NULL))
+    if (is.null(page)) break
     
-    # Ajusta este selector con el correcto de la página
-    stories_nodes <- html_nodes(page, ".story-content") 
+    links <- page %>% html_nodes("div.rowlight a") %>% html_attr("href")
     
-    stories <- html_text(stories_nodes, trim = TRUE)
-    return(stories)
-  }, error = function(e) {
-    message(paste("Error en la página:", page_url))
-    return(character(0)) # devuelve vector vacío en error para continuar el loop
+    if (length(links) == 0) break  # si no hay más enlaces, salir
+    
+    all_links <- c(all_links, str_c("https://www.yourghoststories.com/", links))
+    
+    if (length(all_links) >= max_stories) break  # límite de historias
+    
+    page_num <- page_num + 1
+  }
+  
+  # Limitar a max_stories si hay más
+  all_links <- head(all_links, max_stories)
+  
+  return(all_links)
+}
+
+# --- Función para extraer texto y categoría de cada historia ---
+get_story_text <- function(story_url) {
+  page <- tryCatch(read_html(story_url), error = function(e) return(NULL))
+  if (is.null(page)) return(tibble(text = NA_character_, category = NA_character_))
+  
+  # Texto de la historia
+  paragraphs <- page %>% html_nodes("#story p") %>% html_text(trim = TRUE)
+  story_text <- paste(paragraphs, collapse = "\n\n")
+  
+  # Categoría real desde la historia
+  category <- page %>% 
+    html_nodes("a[href*='ghost-stories-categories.php?category']") %>% 
+    html_text(trim = TRUE) %>% 
+    .[1]  # tomar la primera coincidencia
+  
+  tibble(text = story_text, category = category)
+}
+
+# --- Pipeline principal ---
+scrape_categories <- function(categories_df, max_per_category = 500) {
+  all_stories <- map_df(categories_df$url, function(cat_url) {
+    cat("Procesando categoría:", cat_url, "\n")
+    
+    # 1. Obtener links de historias (limitado)
+    links <- get_story_links(cat_url, max_stories = max_per_category)
+    
+    # 2. Extraer texto y categoría
+    stories_data <- map_df(links, get_story_text)
+    
+    return(stories_data)
   })
+  
+  return(all_stories)
 }
 
-base_url <- "https://www.yourghoststories.com/page/"
+# --- Ejecutar scraping ---
+# categories_df debe tener columna "url" con URLs de categorías paranormales
+all_stories_df <- scrape_categories(categories_df, max_per_category = 100)
 
-all_stories <- c()
-num_pages <- 50
+# Ver resultados
+dim(all_stories_df)
+head(all_stories_df)
 
-for (i in 1:num_pages) {
-  print(paste("Extrayendo página:", i))
-  url <- paste0(base_url, i)
-  stories <- get_stories_page(url)
-  all_stories <- c(all_stories, stories)
-  Sys.sleep(1)
-}
-
-length(all_stories)
-head(all_stories, 5)
+write.csv(all_stories_df, "prueba_all_stories.csv", row.names = FALSE)
 
 ```
+
+```{r}
+glimpse(all_stories_df)
+```
+Obtenemos 1856 historias de 20 categorías.
+
+
+Código de prueba. No extrae todas las historias de las categorías o las seleccionadas en un rango. 
+
+```{r}!
+library(rvest)
+library(dplyr)
+library(purrr)
+library(stringr)
+
+# --- 1. Función para extraer links de historias dentro de una categoría ---
+get_story_links <- function(category_url) {
+  page <- read_html(category_url)
+  
+  # Extraer todos los enlaces dentro de div.rowlight
+  links <- page %>% 
+    html_nodes("div.rowlight a") %>% 
+    html_attr("href") %>% 
+    str_c("https://www.yourghoststories.com/", .)
+  
+  return(links)
+}
+
+# --- 2. Función para extraer texto y categoría de cada historia ---
+get_story_text <- function(story_url) {
+  page <- read_html(story_url)
+  
+  # Texto de la historia
+  paragraphs <- page %>% html_nodes("#story p") %>% html_text(trim = TRUE)
+  story_text <- paste(paragraphs, collapse = "\n\n")
+  
+  # Categoría real desde la historia
+  category <- page %>% 
+    html_nodes("a[href*='ghost-stories-categories.php?category']") %>% 
+    html_text(trim = TRUE) %>% 
+    .[1]  # tomar la primera coincidencia
+  
+  return(list(text = story_text, category = category))
+}
+
+# --- 3. Pipeline principal ---
+all_stories <- map_df(categories_df$url, function(cat_url) {
+  cat("Procesando categoría:", cat_url, "\n")
+  
+  # 3a. Obtener todos los links de historias de la categoría
+  links <- get_story_links(cat_url)
+  
+  # 3b. Extraer texto y categoría de cada historia
+  stories_data <- map_df(links, function(link) {
+    res <- tryCatch({
+      get_story_text(link)
+    }, error = function(e) {
+      message("Error en:", link)
+      return(list(text = NA_character_, category = NA_character_))
+    })
+    
+    tibble(
+      text = res$text,
+      category = res$category
+    )
+  })
+  
+  return(stories_data)
+})
+
+# --- 4. Guardar el dataframe final ---
+write.csv(all_stories, "all_stories.csv", row.names = FALSE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
