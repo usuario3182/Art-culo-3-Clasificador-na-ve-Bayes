@@ -1,26 +1,50 @@
 ---
-title: "Artículo_3_Final"
-format: html
-editor: visual
+title: "Artículo 3: Clasificador naïve Bayes"
+author:
+  - name: "Barush Caliel C. Luna"
+    affiliation: "1"
+  - name: "Diego B. Castillo"
+    affiliation: "1"
+  - name: "Pedro Emilio S. Rodríguez"
+    affiliation: "1"
+  - name: "Vidal Alejandro G. López"
+    affiliation: "1"
+affiliation:
+  - id: "1"
+    institution: "Instituto Tecnológico de Estudios Superiores de Monterrey"
+date: "09/14/2025"
+abstract: | This project develops a comprehensive web scraping pipeline to collect and organize firsthand paranormal experience narratives from Your Ghost Stories, an online repository of supernatural reports worldwide. Using R tools such as rvest, stringr, and purrr, we systematically extracted categorical metadata and full story texts by navigating the site's categorized and paginated structure. The methodology ensured legal compliance through robot.txt validation and incorporated robust error handling to overcome challenges related to URL parameter concatenation and page navigation. The resulting structured dataset enables advanced text mining and probabilistic classification models, such as Naïve Bayes, to analyze linguistic patterns and categorize paranormal events effectively, laying groundwork for enhanced understanding of narrative-based paranormal phenomena.
+keywords: [web scraping, paranormal narratives, natural language processing, R programming, Your Ghost Stories, supervised classification, data extraction]
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true
+    theme: lumen
+  pdf:
+    documentclass: article
+    toc: true
+    number-sections: true
+    latex-engine: xelatex
+    #classoption: twocolumn #esto es para las dos columnas
+    keep-tex: false
+execute:
+  echo: true
+  warning: false
+  error: false
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
-## Quarto
+# Introducción
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+El análisis de texto y la clasificación automática de narrativas se han convertido en herramientas fundamentales dentro de la ciencia de datos para explorar y entender grandes volúmenes de información no estructurada. En este proyecto, se aborda el reto de clasificar relatos de fenómenos paranormales recopilados en línea, provenientes de la página web Your Ghost Stories, que contiene una extensa base de datos de experiencias sobrenaturales narradas por usuarios. La naturaleza subjetiva y diversa de estas historias hace que su categorización sea especialmente compleja, pues involucra distintos tipos de fenómenos y estilos narrativos que desafían los métodos tradicionales de análisis.
 
-## Running Code
+Para resolver este problema, se implementa una metodología basada en técnicas computacionales de web scraping para la extracción automatizada de grandes cantidades de datos textuales, asegurando el respeto a las políticas del sitio mediante el uso del paquete robotstxt. Posteriormente, se procesa la información obtenida utilizando herramientas del paquete tidyverse para la limpieza, normalización y tokenización del texto, creando matrices dispersas de frecuencia de palabras que constituyen la representación numérica de los relatos.
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+Se emplean modelos probabilísticos, específicamente clasificadores Naïve Bayes, para asignar etiquetas a cada relato según el tipo de evento paranormal, enfrentando los retos de la alta dimensionalidad y sparsidad típica en problemas de análisis de texto. Además, se exploran técnicas de suavizamiento y validación cruzada para optimizar el desempeño del modelo. Este trabajo tiene como objetivo no solo desarrollar una solución automatizada para la clasificación multiclase de relatos paranormales, sino también contribuir con un conjunto de datos estructurado y una metodología reproducible que facilite futuros análisis en este campo interdisciplinario.
 
-```{r}
-1 + 1
-```
+#  Metodología
 
-You can add options to executable code like this
 
-```{r}
-#| echo: false
-2 * 2
-```
-
-The `echo: false` option disables the printing of code (only output is displayed).
