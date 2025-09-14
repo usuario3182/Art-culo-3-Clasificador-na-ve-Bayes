@@ -13,9 +13,9 @@ affiliation:
   - id: "1"
     institution: "Instituto Tecnológico de Estudios Superiores de Monterrey"
 date: "09/14/2025"
-abstract: |
-  This project aims to implement a naïve Bayes classifier to categorize online narratives of paranormal phenomena. Using web scraping techniques, data were collected from Your Ghost Stories, a platform that compiles personal accounts of supernatural events worldwide. The dataset includes story titles, locations, event types, and full narrative descriptions... MAS COSAS
-keywords: [Naïve Bayes classifier, Paranormal narratives, Web scraping, Natural language processing (NLP), Text mining, Probabilistic modeling]
+abstract: | 
+ This project develops a comprehensive web scraping pipeline to collect and organize firsthand paranormal experience narratives from Your Ghost Stories, an online repository of supernatural reports worldwide. Using R tools such as rvest, stringr, and purrr, we systematically extracted categorical metadata and full story texts by navigating the site's categorized and paginated structure. The methodology ensured legal compliance through robot.txt validation and incorporated robust error handling to overcome challenges related to URL parameter concatenation and page navigation. The resulting structured dataset enables advanced text mining and probabilistic classification models, such as Naïve Bayes, to analyze linguistic patterns and categorize paranormal events effectively, laying groundwork for enhanced understanding of narrative-based paranormal phenomena.
+keywords: [Naïve Bayes classifier, Paranormal narratives, Web scraping, Natural language processing (NLP), Text mining, Probabilistic modeling, Data Extraction]
 format:
   html:
     toc: true
@@ -40,9 +40,11 @@ editor:
 
 # Introducción
 
-Las narrativas paranormales representan una fuente única de datos textuales generados por usuarios, que combinan interés cultural, psicológico y sociológico. Con la creciente disponibilidad de plataformas en línea como *Your Ghost Stories*, es posible recopilar grandes volúmenes de relatos sobre experiencias sobrenaturales.
+El análisis de texto y la clasificación automática de narrativas se han convertido en herramientas fundamentales dentro de la ciencia de datos para explorar y entender grandes volúmenes de información no estructurada. En este proyecto, se aborda el reto de clasificar relatos de fenómenos paranormales recopilados en línea, provenientes de la página web Your Ghost Stories, que contiene una extensa base de datos de experiencias sobrenaturales narradas por usuarios. La naturaleza subjetiva y diversa de estas historias hace que su categorización sea especialmente compleja, pues involucra distintos tipos de fenómenos y estilos narrativos que desafían los métodos tradicionales de análisis.
 
-La clasificación de este tipo de historias requiere técnicas computacionales capaces de manejar texto no estructurado. Los modelos probabilísticos, en particular los clasificadores naïve Bayes, constituyen un enfoque simple pero eficaz para la categorización de texto. No obstante, surgen desafíos debido a la naturaleza dispersa, discreta y con exceso de ceros de los datos textuales. Este estudio explora adaptaciones al marco de naïve Bayes, incluyendo el uso de distribuciones de Poisson, el suavizamiento de Laplace y la validación cruzada para optimizar parámetros.
+Para resolver este problema, se implementa una metodología basada en técnicas computacionales de web scraping para la extracción automatizada de grandes cantidades de datos textuales, asegurando el respeto a las políticas del sitio mediante el uso del paquete robotstxt. Posteriormente, se procesa la información obtenida utilizando herramientas del paquete tidyverse para la limpieza, normalización y tokenización del texto, creando matrices dispersas de frecuencia de palabras que constituyen la representación numérica de los relatos.
+
+Se emplean modelos probabilísticos, específicamente clasificadores Naïve Bayes, para asignar etiquetas a cada relato según el tipo de evento paranormal, enfrentando los retos de la alta dimensionalidad y sparsidad típica en problemas de análisis de texto. Además, se exploran técnicas de suavizamiento y validación cruzada para optimizar el desempeño del modelo. Este trabajo tiene como objetivo no solo desarrollar una solución automatizada para la clasificación multiclase de relatos paranormales, sino también contribuir con un conjunto de datos estructurado y una metodología reproducible que facilite futuros análisis en este campo interdisciplinario.
 
 # Métodos  
 
