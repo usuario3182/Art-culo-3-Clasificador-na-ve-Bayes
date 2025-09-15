@@ -193,7 +193,6 @@ glimpse(all_stories_df)
 ```
 Obtenemos 1856 historias de 20 categorías.
 
-
 Código de prueba. No extrae todas las historias de las categorías o las seleccionadas en un rango. 
 
 ```{r}!
@@ -270,6 +269,13 @@ Importamos datos para analizarlo y
 df = read_csv("prueba_all_stories.csv")
 ```
 
+Guardamos objeto
+
+```{r}
+#saveRDS(head(df,2), "objetos/head_relatos_y_categorias.rds")
+```
+
+
 ```{r}
 glimpse(df)
 ```
@@ -287,7 +293,7 @@ library(janeaustenr) # install.packages("janeaustenr)
 
 ## Word frecuencies
 
-```{r}
+```{r}!
 austen_words <- austen_books |>
   unnest_tokens(output = word, input = text) # token = "words" by default
 ```
@@ -319,7 +325,7 @@ my_words = df_clean %>%
 ### Análisis con `stop words`
 
 ```{r}
-my_words %>%
+tabla_fre_cat = my_words %>%
   count(category, word, sort = TRUE) %>%
   group_by(category) %>%
   slice_head(n = 10) %>%
@@ -328,9 +334,10 @@ my_words %>%
     values_from = n,
     values_fn = as.character,
     values_fill = "Not in top 10"
-  ) %>%
-  kable()
+  )
 
+#saveRDS(tabla_fre_cat, "objetos/tabla_fre_cat.rds")
+kable(tabla_fre_cat)
 ```
 
 ## Pipeline completo:
@@ -359,7 +366,7 @@ my_bigrams
 ```
 
 ```{r}
-my_bigrams %>%
+diagrama = my_bigrams %>%
   count(category, bigram, sort = TRUE) %>%
   group_by(category) %>%
   slice_head(n = 10) %>%
@@ -368,7 +375,42 @@ my_bigrams %>%
   facet_wrap(~category, scales = "free") +
   scale_y_reordered() +
   labs(y = NULL)
+
+
+#saveRDS(diagrama, "objetos/diagrama_frecuencia_cat.rds")
+diagrama
 ```
+
+```{r}
+library(ggplot2)
+library(tidytext)
+
+categorias = c("A Haunted Life", "The Haunted House")
+
+# Top palabras por categoría
+top_palabras = my_words %>%
+  filter(category %in% categorias) %>%       # Filtra solo las dos categorías
+  anti_join(stop_words, by = "word") %>%    # Elimina stop words
+  count(category, word, sort = TRUE) %>%    # Cuenta frecuencia
+  group_by(category) %>%
+  slice_head(n = 10)                        # Top 10 palabras
+
+
+diagrama = top_palabras %>%
+  ggplot(aes(x = n, y = reorder_within(word, n, category), fill = category)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~category, scales = "free") +
+  scale_y_reordered() +
+  labs(
+    x = "Frecuencia",
+    y = "Palabra",
+    title = "Top 10 palabras más frecuentes en A Haunted Life"
+  )
+
+diagrama
+saveRDS(diagrama, "objetos/diagrama_frecuencia_cat.rds")
+```
+
 
 Comparación de verbos después de “he”/“she”
 
@@ -405,7 +447,7 @@ word_ratios = bigram_counts %>%
 Visualización log-ratio
 
 ```{r}
-word_ratios %>%
+diagrama_he_she = word_ratios %>%
   mutate(abslogratio = abs(logratio)) %>%
   group_by(logratio < 0) %>%
   top_n(15, abslogratio) %>%
@@ -424,6 +466,8 @@ word_ratios %>%
   scale_color_discrete(name = "", labels = c("More 'she'", "More 'he'")) +
   scale_y_continuous(breaks = seq(-3, 3), labels = c("0.125x", "0.25x", "0.5x", "Same", "2x", "4x", "8x"))
 
+saveRDS(diagrama_he_she, "objetos/diagrama_he_she.rds")
+diagrama_he_she
 ```
 
 # Limpieza y matriz de datos
@@ -507,6 +551,5 @@ Guardamos la matriz
 ```{python}
 X_df.to_csv("matrix_paranormal.csv", index=False)
 ```
-
 
 
