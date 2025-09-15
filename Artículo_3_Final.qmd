@@ -156,6 +156,8 @@ Se construyó la matriz de confusión para evaluar el desempeño del clasificado
 
 Algunas métricas por clase destacan que para la categoría "Photographs / Videos / EVP" se alcanzó un Recall de 1, pero con una Precisión muy baja (0.0563), y para "Shadow People" la precisión y recall fueron también muy bajas. Las demás categorías presentan métricas muy pobres reflejando que el modelo tiene problemas para discriminar entre las clases.
 
+Los resultados del clasificador Naive Bayes con la distribución Poisson mostraron muy baja efectividad con métricas cercanas a cero para casi todas las clases, salvo un par con valores relativamente mejores pero aún insuficientes. Esto indica que el modelo no logró identificar correctamente las categorías de las historias en la mayoría de los casos, reflejando un desempeño global poco útil para la tarea de clasificación en este contexto.
+
 El modelo Naïve Bayes con suavizamiento Laplace (Laplace smoothing) fue evaluado mediante validación cruzada 3-fold, dando como mejor parámetro Laplace = 0 y sin kernel (usekernel = FALSE). La matriz de confusión y métricas con este suavizamiento no mejoraron la precisión global que se mantuvo en 0.0539. Los promedios macro para precisión, recall y F1-score se ubicaron alrededor de 0.0042, 0.0524 y 0.0071 respectivamente, lo cual indica un desempeño insuficiente en el contexto de clasificación multiclase con alta dimensionalidad y sparsidad.
 
 Además, se observó que el modelo tiende a predecir mayormente algunas clases específicas, generando desbalance en las predicciones, posiblemente por la falta de ejemplos o la complejidad del corpus textual.
