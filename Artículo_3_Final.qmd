@@ -40,38 +40,88 @@ editor:
 
 # Introducción
 
-El análisis de texto y la clasificación automática de narrativas se han convertido en herramientas fundamentales dentro de la ciencia de datos para explorar y entender grandes volúmenes de información no estructurada. En este proyecto, se aborda el reto de clasificar relatos de fenómenos paranormales recopilados en línea, provenientes de la página web Your Ghost Stories, que contiene una extensa base de datos de experiencias sobrenaturales narradas por usuarios. La naturaleza subjetiva y diversa de estas historias hace que su categorización sea especialmente compleja, pues involucra distintos tipos de fenómenos y estilos narrativos que desafían los métodos tradicionales de análisis.
+El análisis de texto y la clasificación automática de narrativas se han
+convertido en herramientas fundamentales dentro de la ciencia de datos
+para explorar y entender grandes volúmenes de información no
+estructurada. En este proyecto, se aborda el reto de clasificar relatos
+de fenómenos paranormales recopilados en línea, provenientes de la
+página web Your Ghost Stories, que contiene una extensa base de datos de
+experiencias sobrenaturales narradas por usuarios. La naturaleza
+subjetiva y diversa de estas historias hace que su categorización sea
+especialmente compleja, pues involucra distintos tipos de fenómenos y
+estilos narrativos que desafían los métodos tradicionales de análisis.
 
-Para resolver este problema, se implementa una metodología basada en técnicas computacionales de web scraping para la extracción automatizada de grandes cantidades de datos textuales, asegurando el respeto a las políticas del sitio mediante el uso del paquete robotstxt. Posteriormente, se procesa la información obtenida utilizando herramientas del paquete tidyverse para la limpieza, normalización y tokenización del texto, creando matrices dispersas de frecuencia de palabras que constituyen la representación numérica de los relatos.
+Para resolver este problema, se implementa una metodología basada en
+técnicas computacionales de web scraping para la extracción automatizada
+de grandes cantidades de datos textuales, asegurando el respeto a las
+políticas del sitio mediante el uso del paquete robotstxt.
+Posteriormente, se procesa la información obtenida utilizando
+herramientas del paquete tidyverse para la limpieza, normalización y
+tokenización del texto, creando matrices dispersas de frecuencia de
+palabras que constituyen la representación numérica de los relatos.
 
-Se emplean modelos probabilísticos, específicamente clasificadores Naïve Bayes, para asignar etiquetas a cada relato según el tipo de evento paranormal, enfrentando los retos de la alta dimensionalidad y sparsidad típica en problemas de análisis de texto. Además, se exploran técnicas de suavizamiento y validación cruzada para optimizar el desempeño del modelo. Este trabajo tiene como objetivo no solo desarrollar una solución automatizada para la clasificación multiclase de relatos paranormales, sino también contribuir con un conjunto de datos estructurado y una metodología reproducible que facilite futuros análisis en este campo interdisciplinario.
+Se emplean modelos probabilísticos, específicamente clasificadores Naïve
+Bayes, para asignar etiquetas a cada relato según el tipo de evento
+paranormal, enfrentando los retos de la alta dimensionalidad y sparsidad
+típica en problemas de análisis de texto. Además, se exploran técnicas
+de suavizamiento y validación cruzada para optimizar el desempeño del
+modelo. Este trabajo tiene como objetivo no solo desarrollar una
+solución automatizada para la clasificación multiclase de relatos
+paranormales, sino también contribuir con un conjunto de datos
+estructurado y una metodología reproducible que facilite futuros
+análisis en este campo interdisciplinario.
 
-# Métodos  
+# Métodos
 
-## Recolección de datos 
+## Recolección de datos
 
-Fuente, técnica, estructura de datos, otras consideraciones
+La recolección de datos se realizó mediente técnicas de web scrapping aplicadas al sitio web $Your Ghost Stories$, una fuente de relatos paranormales publicados por usuarios de distintas partes del mundo. Se utilizó el lenguaje R y varios paquetes especializados, cómo **rvest** para la extracción de contenido HTML y **string** para la manipulación de texto. 
+Los datos obtenidos incluyen tanto los metadatos categóricos, como tipo de fenómeno paranormal, fecha, ubicación, como el texto completo de cada relato. Finalmente, la información fue almacenada en un dataset en formato CSV, facilitando su análisis y procesamiento.
 
-## Preprocesamiento de texto 
 
-Tokenizacion, eliminacion de stop words, construccion matriz dispersa, etiquetado de tipo de eventos paranormales
+## Preprocesamiento de texto
 
-## Implementación del modelo  
+El procesamiento del texto se realizó con herramientas del paquete **tidyverse**, y los siguientes pasos:
 
-Aplicar naïve Bayes gaussiano, +distribucion Poisson, +suavizamiento Laplace, +cross-validation
+-**Tokenización:** separación del texto en palabras, para facilitar el análisis cuantitativo.
+-**Eliminación de stop words:** remoción de palabras comunes y poco inforamtivas, usando una lista predefinida en R llamada **stop_words**.
+-**Normalización:** conversión a minúsculas, eliminación de signos de puntuación y caracteres especiales para normalizar los datos.
+-**Construcción de la matriz:** Generación de la matriz dispersa con la categoría del relato y el texto del relato.
+-**Etiquetado:** cada relato fue asignado a su categoría original mencionada en el sitio web.
 
-# Aplicación al problema de narrativas paranormales  
+## Implementación del modelo
 
-Division de training y test sets, comparacion de modelos
+Para la clasificación, se implementaron modelos probabilísticos basados en el clasificador Naïve-Bayes, con las siguientes características:
 
-# Resultados y discusión  
+-**Naïve-Bayes Gaussiano:** asumiendo que las características, frecuencias de palabras, siguen una distribución de normal para modelar los datos continuos.
+-**Distribución de Poisson:** explorada para modelar el conteo de palabras en cada relato, dado que es una variable discreta y frecuentemente dispersa. 
+-**Suavizamiento Laplace:** aplicado para evitar probabilidades cero en categorías con palabras poco frecuentes, mejorando así la robustez del clasificador.
+-**Cross-validation:** se utilizó $cross-validation$ para evaluar la generalización del modelo y ajustar hiperparámetros, minimizando el sobreajuste y maximizando la precisión predictiva. 
 
+# Aplicación al problema de narrativas paranormales
+
+Para evaluar el desempeño del clasificador Naïve Bayes en la categorización de relatos paranormales, se dividió el conjunto de datos en dos subconjuntos: 
+
+- **Conjunto de entrenamiento (training set):** que comprende un 70% aleatorio de los relatos, utilizado para ajustar los parámetros del modelo.
+- **Conjunto de prueba (test set):** con el 30% restante, utilizado para validar la capacidad de generalización del clasificador.
+
+Esta partición aleatoria garantizó que ambas muestras mantuvieran una distribución representativa de las diferentes clases de fenómenos paranormales, preservando el balance de etiquetas.
+
+Se aplicaron y compararon distintas variantes del modelo Naïve Bayes, incluyendo el gaussiano, con distribución de Poisson y con suavizamiento Laplace. Para cada modelo se calcularon métricas de rendimiento como precisión, sensibilidad, especificidad y el valor F1 mediante la matriz de confusión generada con el conjunto de prueba.
+
+Este enfoque experimental facilitó una comparación rigurosa y objetiva entre modelos probabilísticos para la correcta interpretación y predicción de eventos paranormales narrados en formatos textuales no estructurados.
+
+
+# Resultados y discusión
 
 # Conclusiones
 
-
 # Referencias
 
-- Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2017). *R for Data Science*. O’Reilly Media.  
-- Silge, J., & Robinson, D. (2017). *Text Mining with R: A Tidy Approach*. O’Reilly Media.  
-- Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., & Leisch, F. (2021). *naivebayes: Naive Bayes Classifier for Discrete and Continuous Features*. R package.  
+-   Wickham, H., Çetinkaya-Rundel, M., & Grolemund, G. (2017). *R for
+    Data Science*. O’Reilly Media.\
+-   Silge, J., & Robinson, D. (2017). *Text Mining with R: A Tidy
+    Approach*. O’Reilly Media.\
+-   Meyer, D., Dimitriadou, E., Hornik, K., Weingessel, A., & Leisch, F.
+    (2021). *naivebayes: Naive Bayes Classifier for Discrete and
+    Continuous Features*. R package.
