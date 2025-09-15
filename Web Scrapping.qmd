@@ -411,6 +411,30 @@ diagrama
 saveRDS(diagrama, "objetos/diagrama_frecuencia_cat.rds")
 ```
 
+```{r}
+top_palabras = my_words_clean %>%
+  count(category, word, sort = TRUE) %>%
+  group_by(category) %>%
+  slice_head(n = 5) %>%  # solo la palabra más frecuente por categoría
+  ungroup()
+
+# Gráfico estilo facetas, una fila por categoría
+diagrama_top = top_palabras %>%
+  ggplot(aes(x = n, y = reorder_within(word, n, category), fill = category)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~category, scales = "free") +
+  scale_y_reordered() +
+  labs(
+    x = "Frecuencia",
+    y = "Palabra",
+    title = "Palabra más frecuente por categoría"
+  )
+
+saveRDS(diagrama_top, "objetos/diagrama_top.rds")
+diagrama_top
+
+```
+
 
 Comparación de verbos después de “he”/“she”
 
