@@ -6,14 +6,13 @@ editor: visual
 
 ```{r}
 library(tidyverse)
-library(mgcv)
-library(gratia)
-library(ggplot2)
-library(bnlearn)
-library(dplyr)
+library(tidytext)
+library(tidymodels)
+library(e1071)
+library(janitor)
+library(Matrix)
 ```
-
-
+# Cargar bases de datos
 ```{r}
 data = read_delim("prueba_all_stories.csv")
 ```
@@ -22,4 +21,124 @@ data = read_delim("prueba_all_stories.csv")
 head(data)
 summary(data)
 ```
+
+# Cargar sparse matrix
+
+```{r}
+matrix = read_delim("matrix_paranormal.csv")
+```
+
+```{r}
+head(matrix)
+summary(matrix)
+```
+
+# Limpieza de datos
+
+```{r}
+data <- data %>%
+  clean_names() %>%
+  filter(!is.na(text), !is.na(category)) %>%
+  mutate(
+    text = str_to_lower(text),
+    text = str_replace_all(text, "[^a-zA-Z\\s]", ""),
+    text = str_squish(text),
+    story_id = row_number()           # IDs unicos
+  )
+```
+
+# Verificación de categorías
+
+```{r}
+print(paste("Número total de relatos:", nrow(data)))
+print("Distribución por categoría:")
+print(table(data$category))
+```
+# Cargar la sparse matrix
+
+```{r}
+model_data <- matrix
+```
+
+# División en training y test sets
+
+```{r}
+set.seed(1234)
+paranormal_split <- initial_split(model_data, prop = 0.7)
+```
+
+```{r}
+paranormal_train <- training(paranormal_split)
+paranormal_test <- testing(paranormal_split)
+```
+
+# Entrenar el clasificador Naïve Bayes
+
+```{r}
+NB_pn <- naiveBayes(category ~ ., data = paranormal_train)
+```
+
+```{r}
+y_pred <- predict(NB_pn, newdata = paranormal_test)
+y_true <- paranormal_test$category
+```
+
+```{r}
+all_levels <- union(levels(as.factor(y_true)), levels(as.factor(y_pred)))
+y_pred <- factor(y_pred, levels = all_levels)
+y_true <- factor(y_true, levels = all_levels)
+```
+
+# Evaluación del modelo
+
+```{r}
+cm <- table(Actual = y_true, Predicted = y_pred)
+print("Matriz de Confusión:")
+print(cm)
+```
+
+```{r}
+accuracy <- sum(diag(cm)) / sum(cm)
+print(paste("Accuracy:", round(accuracy, 4)))
+```
+
+```{r}
+calculate_metrics <- function(cm, class_name) {
+  if (!class_name %in% rownames(cm)) {
+    return(list(precision = NA, recall = NA, f1 = NA))    # Verificar si clase existe dentro de cm
+  }
+  
+  class_idx <- which(rownames(cm) == class_name)  # Posicion de la clase
+  tp <- cm[class_idx, class_idx]         # True Positives
+  fp <- sum(cm[, class_idx]) - tp        # False positives
+  fn <- sum(cm[class_idx, ]) - tp        # False negatives
+  
+  precision <- ifelse(tp + fp == 0, 0, tp / (tp + fp))
+  recall <- ifelse(tp + fn == 0, 0, tp / (tp + fn))
+  f1 <- ifelse(precision + recall == 0, 0, 2 * precision * recall / (precision + recall))
+  
+  return(list(
+    precision = precision,
+    recall = recall,
+    f1 = f1
+  ))
+}
+```
+
+```{r}
+classes <- rownames(cm)
+metrics_list <- list()
+
+cat("Métricas por clase:\n")
+for (class in classes) {
+  metrics <- calculate_metrics(cm, class)
+  metrics_list[[class]] <- metrics
+  
+  cat(paste("Clase:", class, "\n"))
+  cat(paste("  Precision:", round(metrics$precision, 4), "\n"))
+  cat(paste("  Recall:", round(metrics$recall, 4), "\n"))
+  cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
+}
+```
+
 
