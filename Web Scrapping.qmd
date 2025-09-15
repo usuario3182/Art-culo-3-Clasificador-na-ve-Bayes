@@ -54,13 +54,13 @@ Usando la librería *rvest*, identificamos el nodo, extraemos los párrafos y lo
 
 ```{r}
 # Leer la página
-page <- read_html("https://www.yourghoststories.com/real-ghost-story.php?story=28549")
+page = read_html("https://www.yourghoststories.com/real-ghost-story.php?story=28549")
 
 # Seleccionar todos los párrafos dentro del div con id "story"
-paragraphs <- page %>% html_nodes("#story p") %>% html_text()
+paragraphs = page %>% html_nodes("#story p") %>% html_text()
 
 # Unirlos en un solo texto
-story_text <- paste(paragraphs, collapse = "\n\n")
+story_text = paste(paragraphs, collapse = "\n\n")
 
 cat(story_text)
 
@@ -76,18 +76,18 @@ library(stringr)
 library(dplyr)
 library(purrr)
 
-main_url <- "https://www.yourghoststories.com/real-ghost-stories.php"
-page <- read_html(main_url)
+main_url = "https://www.yourghoststories.com/real-ghost-stories.php"
+page = read_html(main_url)
 
 # Seleccionar todos los <li> dentro de <ul.listresults>
-lis <- page %>% html_nodes("ul.listresults li")
+lis = page %>% html_nodes("ul.listresults li")
 
 # Tomar solo los primeros 15, que son las categorías paranormales
-lis_categories <- lis[1:20]
+lis_categories = lis[1:20]
 
 # Extraer nombre y URL de cada <li>
-categories_df <- map_df(lis_categories, function(li) {
-  a_tag <- li %>% html_node("a")
+categories_df = map_df(lis_categories, function(li) {
+  a_tag = li %>% html_node("a")
   
   if (!is.na(a_tag)) {
     data.frame(
@@ -115,43 +115,43 @@ library(stringr)
 library(purrr)
 
 # --- Función para extraer links de todas las páginas de una categoría ---
-get_story_links <- function(category_base_url, max_stories = 500) {
-  page_num <- 1
-  all_links <- c()
+get_story_links = function(category_base_url, max_stories = 500) {
+  page_num = 1
+  all_links = c()
   
   repeat {
-    url <- str_replace(category_base_url, "page=1", paste0("page=", page_num))
-    page <- tryCatch(read_html(url), error = function(e) return(NULL))
+    url = str_replace(category_base_url, "page=1", paste0("page=", page_num))
+    page = tryCatch(read_html(url), error = function(e) return(NULL))
     if (is.null(page)) break
     
-    links <- page %>% html_nodes("div.rowlight a") %>% html_attr("href")
+    links = page %>% html_nodes("div.rowlight a") %>% html_attr("href")
     
     if (length(links) == 0) break  # si no hay más enlaces, salir
     
-    all_links <- c(all_links, str_c("https://www.yourghoststories.com/", links))
+    all_links = c(all_links, str_c("https://www.yourghoststories.com/", links))
     
     if (length(all_links) >= max_stories) break  # límite de historias
     
-    page_num <- page_num + 1
+    page_num = page_num + 1
   }
   
   # Limitar a max_stories si hay más
-  all_links <- head(all_links, max_stories)
+  all_links = head(all_links, max_stories)
   
   return(all_links)
 }
 
 # --- Función para extraer texto y categoría de cada historia ---
-get_story_text <- function(story_url) {
-  page <- tryCatch(read_html(story_url), error = function(e) return(NULL))
+get_story_text = function(story_url) {
+  page = tryCatch(read_html(story_url), error = function(e) return(NULL))
   if (is.null(page)) return(tibble(text = NA_character_, category = NA_character_))
   
   # Texto de la historia
-  paragraphs <- page %>% html_nodes("#story p") %>% html_text(trim = TRUE)
-  story_text <- paste(paragraphs, collapse = "\n\n")
+  paragraphs = page %>% html_nodes("#story p") %>% html_text(trim = TRUE)
+  story_text = paste(paragraphs, collapse = "\n\n")
   
   # Categoría real desde la historia
-  category <- page %>% 
+  category = page %>% 
     html_nodes("a[href*='ghost-stories-categories.php?category']") %>% 
     html_text(trim = TRUE) %>% 
     .[1]  # tomar la primera coincidencia
@@ -160,15 +160,15 @@ get_story_text <- function(story_url) {
 }
 
 # --- Pipeline principal ---
-scrape_categories <- function(categories_df, max_per_category = 500) {
-  all_stories <- map_df(categories_df$url, function(cat_url) {
+scrape_categories = function(categories_df, max_per_category = 500) {
+  all_stories = map_df(categories_df$url, function(cat_url) {
     cat("Procesando categoría:", cat_url, "\n")
     
     # 1. Obtener links de historias (limitado)
-    links <- get_story_links(cat_url, max_stories = max_per_category)
+    links = get_story_links(cat_url, max_stories = max_per_category)
     
     # 2. Extraer texto y categoría
-    stories_data <- map_df(links, get_story_text)
+    stories_data = map_df(links, get_story_text)
     
     return(stories_data)
   })
@@ -178,7 +178,7 @@ scrape_categories <- function(categories_df, max_per_category = 500) {
 
 # --- Ejecutar scraping ---
 # categories_df debe tener columna "url" con URLs de categorías paranormales
-all_stories_df <- scrape_categories(categories_df, max_per_category = 100)
+all_stories_df = scrape_categories(categories_df, max_per_category = 100)
 
 # Ver resultados
 dim(all_stories_df)
@@ -262,25 +262,251 @@ write.csv(all_stories, "all_stories.csv", row.names = FALSE)
 
 ```
 
+# Análisis de frecuencia de palabras y comparaciones
+
+Importamos datos para analizarlo y 
+
+```{r}
+df = read_csv("prueba_all_stories.csv")
+```
+
+```{r}
+glimpse(df)
+```
+
+## Cargar los datos
+
+Siguiendo algunas líneas del tutorial: https://sta199-f22-1.github.io/ae/ae-21-jane-austen-A.html
+
+```{r}
+library(tidyverse)
+library(tidytext)
+library(knitr)
+library(janeaustenr) # install.packages("janeaustenr)
+```
+
+## Word frecuencies
+
+```{r}
+austen_words <- austen_books |>
+  unnest_tokens(output = word, input = text) # token = "words" by default
+```
+
+Filtramos por si hay textos vacíos:
+
+```{r}
+df_clean = df %>%
+  filter(text != "")
+
+glimpse(df_clean)
+```
+Confirmamos que sean las 20 categorías
+
+```{r}
+df_clean %>%
+  distinct(category)
+
+```
+
+Usando `unnest_tokens()` convertimos cada fila de texto en palabras individuales. Se hace un _split_ del texto y se le asigna su categoría. Esto sirve para después hacer un conteo.
+
+```{r}
+my_words = df_clean %>%
+  unnest_tokens(output = word, input = text)
+
+```
+
+### Análisis con `stop words`
+
+```{r}
+my_words %>%
+  count(category, word, sort = TRUE) %>%
+  group_by(category) %>%
+  slice_head(n = 10) %>%
+  pivot_wider(
+    names_from = category,
+    values_from = n,
+    values_fn = as.character,
+    values_fill = "Not in top 10"
+  ) %>%
+  kable()
+
+```
+
+## Pipeline completo:
+
+### Palabras más frecuentes
+
+Por solo una palabra
+
+```{r}
+my_words = df %>%
+  unnest_tokens(output = word, input = text)
+
+my_words_clean = my_words %>%
+  anti_join(stop_words, by = "word")
+
+```
+
+Bigramas más frecuentes
+
+```{r}
+my_bigrams = df %>%
+  unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
+  filter(!is.na(bigram))
+
+my_bigrams
+```
+
+```{r}
+my_bigrams %>%
+  count(category, bigram, sort = TRUE) %>%
+  group_by(category) %>%
+  slice_head(n = 10) %>%
+  ggplot(aes(y = reorder_within(bigram, n, category), x = n, fill = category)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~category, scales = "free") +
+  scale_y_reordered() +
+  labs(y = NULL)
+```
+
+Comparación de verbos después de “he”/“she”
+
+```{r}
+pronouns = c("he", "she")
+
+bigram_counts = my_bigrams %>%
+  count(bigram, sort = TRUE) %>%
+  separate(bigram, into = c("word1", "word2"), sep = " ") %>%
+  filter(word1 %in% pronouns) %>%
+  count(word1, word2, wt = n, sort = TRUE) %>%
+  rename(total = n)
+
+```
 
 
+```{r}
+word_ratios = bigram_counts %>%
+  group_by(word2) %>%
+  filter(sum(total) > 10) %>%
+  ungroup() %>%
+  pivot_wider(names_from = word1, values_from = total, values_fill = 0) %>%
+  arrange(word2) %>%
+  mutate(
+    she = (she+1)/sum(she+1),
+    he = (he+1)/sum(he+1),
+    logratio = log(she / he, base = 2)
+  ) %>%
+  arrange(desc(logratio))
+
+```
 
 
+Visualización log-ratio
 
+```{r}
+word_ratios %>%
+  mutate(abslogratio = abs(logratio)) %>%
+  group_by(logratio < 0) %>%
+  top_n(15, abslogratio) %>%
+  ungroup() %>%
+  mutate(word = reorder(word2, logratio)) %>%
+  ggplot(aes(word, logratio, color = logratio < 0)) +
+  geom_segment(aes(x = word, xend = word, y = 0, yend = logratio), linewidth = 1.1, alpha = 0.6) +
+  geom_point(size = 3.5) +
+  coord_flip() +
+  labs(
+    x = NULL,
+    y = "Relative appearance after 'she' compared to 'he'",
+    title = "Words paired with 'he' and 'she' in your dataset",
+    subtitle = "Comparison of verbs following pronouns"
+  ) +
+  scale_color_discrete(name = "", labels = c("More 'she'", "More 'he'")) +
+  scale_y_continuous(breaks = seq(-3, 3), labels = c("0.125x", "0.25x", "0.5x", "Same", "2x", "4x", "8x"))
 
+```
 
+# Limpieza y matriz de datos
 
+Utiilzar python en Rstudio
+```{r}!
+library(reticulate)
 
+use_python("...", required = TRUE)
 
+py_config()
 
+```
 
+Según el tutorial de: https://medium.com/@jyotinigam2370/what-is-countvectorizer-961d37e9a290
+Ejemplo
+```{python}!
+from sklearn.feature_extraction.text import CountVectorizer
+# Sample text data
+corpus = [
+    "This is a sample sentence",
+    "This is another example sentence",
+    "Sample text for testing"
+]
+# Initialize CountVectorizer
+vectorizer = CountVectorizer()
+# Fit and transform the corpus
+X = vectorizer.fit_transform(corpus)
+# Vocabulary
+print("Vocabulary:", vectorizer.vocabulary_)
+# Transformed matrix
+print("Feature matrix:\n", X.toarray())
+```
+```{python}!
+word = "sample"
+index = vectorizer.vocabulary_.get(word)
+print(f"The index of '{word}' is {index}.")
+```
 
+Real:
+```{python}
+from sklearn.feature_extraction.text import CountVectorizer
+import pandas as pd
+import numpy as np
+```
 
+```{python}
+df = pd.read_csv("prueba_all_stories.csv")
+df_text = df["text"] 
+df_text.head()
+```
+Si se selecciona todas las palabras, existen alrededor de 7,000 palabras mal escritas o sin un significado concreto. Es por eso que se seleccionaron las 15 mil palabras más frecuentes de todos los tokens:
 
+```{python}
+vectorizer = CountVectorizer(stop_words="english", max_features=15000) # Para reducir la complijidad y las palabras mal escritas
 
+# Fit and transform the corpus
+X = vectorizer.fit_transform(df_text)
 
+print("Vocabulary:", vectorizer.vocabulary_)
 
+# Transformed matrix
+print("Feature matrix:\n", X.toarray())
+```
 
+### Creamos DF
+
+```{python}
+X_df = pd.DataFrame(X.toarray(), columns=vectorizer.get_feature_names_out())
+
+X_df["category"] = df["category"]
+
+#for x in X_df.columns.to_list():
+#  print(x)
+X_df.head()
+#X_df["category"]
+X_df.info()
+```
+
+Guardamos la matriz
+```{python}
+X_df.to_csv("matrix_paranormal.csv", index=False)
+```
 
 
 
