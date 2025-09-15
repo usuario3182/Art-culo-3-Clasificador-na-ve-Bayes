@@ -140,5 +140,16 @@ for (class in classes) {
   cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
 }
 ```
+# Métricas promedio (macro average)
+```{r}
+macro_precision <- mean(sapply(metrics_list, function(x) x$precision), na.rm = TRUE)
+macro_recall <- mean(sapply(metrics_list, function(x) x$recall), na.rm = TRUE)
+macro_f1 <- mean(sapply(metrics_list, function(x) x$f1), na.rm = TRUE)
+
+cat("Métricas Macro-Average:\n")
+cat(paste("  Macro Precision:", round(macro_precision, 4), "\n"))
+cat(paste("  Macro Recall:", round(macro_recall, 4), "\n"))
+cat(paste("  Macro F1-Score:", round(macro_f1, 4), "\n"))
+```
 
 
