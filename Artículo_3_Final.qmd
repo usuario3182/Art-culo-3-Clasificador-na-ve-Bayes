@@ -40,50 +40,19 @@ editor:
 
 # Introducción
 
-El análisis de texto y la clasificación automática de narrativas se han
-convertido en herramientas fundamentales dentro de la ciencia de datos
-para explorar y entender grandes volúmenes de información no
-estructurada. En este proyecto, se aborda el reto de clasificar relatos
-de fenómenos paranormales recopilados en línea, provenientes de la
-página web Your Ghost Stories, que contiene una extensa base de datos de
-experiencias sobrenaturales narradas por usuarios. La naturaleza
-subjetiva y diversa de estas historias hace que su categorización sea
-especialmente compleja, pues involucra distintos tipos de fenómenos y
-estilos narrativos que desafían los métodos tradicionales de análisis.
+El análisis de texto y la clasificación automática de narrativas se han convertido en herramientas fundamentales dentro de la ciencia de datos para explorar y entender grandes volúmenes de información no estructurada. En este proyecto, se aborda el reto de clasificar relatos de fenómenos paranormales recopilados en línea, provenientes de la página web Your Ghost Stories, que contiene una extensa base de datos de experiencias sobrenaturales narradas por usuarios. La naturaleza subjetiva y diversa de estas historias hace que su categorización sea especialmente compleja, pues involucra distintos tipos de fenómenos y estilos narrativos que desafían los métodos tradicionales de análisis.
 
-Para resolver este problema, se implementa una metodología basada en
-técnicas computacionales de web scraping para la extracción automatizada
-de grandes cantidades de datos textuales, asegurando el respeto a las
-políticas del sitio mediante el uso del paquete robotstxt.
-Posteriormente, se procesa la información obtenida utilizando
-herramientas del paquete tidyverse para la limpieza, normalización y
-tokenización del texto, creando matrices dispersas de frecuencia de
-palabras que constituyen la representación numérica de los relatos.
+Para resolver este problema, se implementa una metodología basada en técnicas computacionales de web scraping para la extracción automatizada de grandes cantidades de datos textuales, asegurando el respeto a las políticas del sitio mediante el uso del paquete robotstxt. Posteriormente, se procesa la información obtenida utilizando herramientas del paquete tidyverse para la limpieza, normalización y tokenización del texto, creando matrices dispersas de frecuencia de palabras que constituyen la representación numérica de los relatos.
 
-Se emplean modelos probabilísticos, específicamente clasificadores Naïve
-Bayes, para asignar etiquetas a cada relato según el tipo de evento
-paranormal, enfrentando los retos de la alta dimensionalidad y sparsidad
-típica en problemas de análisis de texto. Además, se exploran técnicas
-de suavizamiento y validación cruzada para optimizar el desempeño del
-modelo. Este trabajo tiene como objetivo no solo desarrollar una
-solución automatizada para la clasificación multiclase de relatos
-paranormales, sino también contribuir con un conjunto de datos
-estructurado y una metodología reproducible que facilite futuros
-análisis en este campo interdisciplinario.
+Se emplean modelos probabilísticos, específicamente clasificadores Naïve Bayes, para asignar etiquetas a cada relato según el tipo de evento paranormal, enfrentando los retos de la alta dimensionalidad y sparsidad típica en problemas de análisis de texto. Además, se exploran técnicas de suavizamiento y validación cruzada para optimizar el desempeño del modelo.
+
+Este trabajo tiene como objetivo no solo desarrollar una solución automatizada para la clasificación multiclase de relatos paranormales, sino también contribuir con un conjunto de datos estructurado y una metodología reproducible que facilite futuros análisis en este campo interdisciplinario.
 
 # Métodos
 
 ## Recolección de datos
 
-La recolección de datos se realizó mediente técnicas de web scrapping
-aplicadas al sitio web $Your Ghost Stories$, una fuente de relatos
-paranormales publicados por usuarios de distintas partes del mundo. Se
-utilizó el lenguaje R y varios paquetes especializados, cómo **rvest**
-para la extracción de contenido HTML y **string** para la manipulación
-de texto. Los datos obtenidos incluyen tanto los metadatos categóricos,
-como tipo de fenómeno paranormal, fecha, ubicación, como el texto
-completo de cada relato. Finalmente, la información fue almacenada en un
-dataset en formato CSV, facilitando su análisis y procesamiento.
+La recolección de datos se realizó mediente técnicas de web scrapping aplicadas al sitio web Your Ghost Stories, una fuente de relatos paranormales publicados por usuarios de distintas partes del mundo. Se utilizó el lenguaje R y varios paquetes especializados, cómo rvest para la extracción de contenido HTML y string para la manipulación de texto. Los datos obtenidos incluyen tanto los metadatos categóricos, como tipo de fenómeno paranormal, fecha, ubicación, como el texto completo de cada relato. Finalmente, la información fue almacenada en un dataset en formato CSV, facilitando su análisis y procesamiento.
 
 ## Preprocesamiento de texto
 
@@ -108,11 +77,16 @@ en el clasificador Naïve-Bayes, con las siguientes características:
 
 \-**Naïve-Bayes Gaussiano:** asumiendo que las características,
 frecuencias de palabras, siguen una distribución de normal para modelar
-los datos continuos. -**Distribución de Poisson:** explorada para
+los datos continuos. 
+
+-**Distribución de Poisson:** explorada para
 modelar el conteo de palabras en cada relato, dado que es una variable
-discreta y frecuentemente dispersa. -**Suavizamiento Laplace:** aplicado
+discreta y frecuentemente dispersa. 
+
+-**Suavizamiento Laplace:** aplicado
 para evitar probabilidades cero en categorías con palabras poco
 frecuentes, mejorando así la robustez del clasificador.
+
 -**Cross-validation:** se utilizó $cross-validation$ para evaluar la
 generalización del modelo y ajustar hiperparámetros, minimizando el
 sobreajuste y maximizando la precisión predictiva.
@@ -174,6 +148,20 @@ diagrama= read_rds("objetos/diagrama_he_she.rds")
 diagrama 
 ```
 
+A continuación, se presentan los resultados experimentales obtenidos con el análisis y modelos aplicados al conjunto de relatos paranormales.
+
+El número total de relatos clasificados fue 1856, distribuidos en 20 categorías de fenómenos paranormales. La distribución por categoría fue equilibrada, con 100 relatos en la mayoría de las categorías, excepto en algunas como "Ghost Tours & Haunted Hotels" con 71 y "Haunted Items" con 46 relatos.
+
+Se construyó la matriz de confusión para evaluar el desempeño del clasificador Naïve Bayes (implementado con el paquete e1071), la cual mostró una precisión global baja (Accuracy: 0.0539), indicando dificultades para clasificar correctamente las distintas categorías.
+
+Algunas métricas por clase destacan que para la categoría "Photographs / Videos / EVP" se alcanzó un Recall de 1, pero con una Precisión muy baja (0.0563), y para "Shadow People" la precisión y recall fueron también muy bajas. Las demás categorías presentan métricas muy pobres reflejando que el modelo tiene problemas para discriminar entre las clases.
+
+El modelo Naïve Bayes con suavizamiento Laplace (Laplace smoothing) fue evaluado mediante validación cruzada 3-fold, dando como mejor parámetro Laplace = 0 y sin kernel (usekernel = FALSE). La matriz de confusión y métricas con este suavizamiento no mejoraron la precisión global que se mantuvo en 0.0539. Los promedios macro para precisión, recall y F1-score se ubicaron alrededor de 0.0042, 0.0524 y 0.0071 respectivamente, lo cual indica un desempeño insuficiente en el contexto de clasificación multiclase con alta dimensionalidad y sparsidad.
+
+Además, se observó que el modelo tiende a predecir mayormente algunas clases específicas, generando desbalance en las predicciones, posiblemente por la falta de ejemplos o la complejidad del corpus textual.
+
+Estos resultados sugieren que, aunque el enfoque Naïve Bayes es conceptualmente adecuado para problemas de texto, en este caso particular requiere ajustes adicionales, selección de características más efectiva, o el uso de modelos más complejos para mejorar la clasificación.
+
 # Análisis de Resultados
 
 Dentro de las 20 categorías, las palabras que más se repetían
@@ -198,6 +186,13 @@ distancia respecto a 1, siendo, por ejemplo, *screamed* más de cuatro
 veces más frecuente con *she*.
 
 # Conclusiones
+
+Se trabajó con un conjunto de datos que contenía 1856 relatos clasificados en 20 categorías relacionadas con experiencias paranormales, incluyendo "A Haunted Life", "Apparitions / Voices / Touches", "Children Who See Spirits", entre otras. Para el análisis, se aplicaron modelos de clasificación Naive Bayes usando diferentes paquetes y configuraciones en R, como e1071, naivebayes y caret. Sin embargo, los resultados mostraron un desempeño muy bajo en la clasificación, con una precisión global alrededor del 5.39%, y métricas de precisión, recall y F1-Score extremadamente bajas para casi todas las categorías, lo que indica que el modelo no logró aprender a distinguir efectivamente entre las diversas clases.
+
+Los intentos de optimización incluyeron el uso de suavizado Laplace con diferentes valores, pero no mejoraron significativamente el rendimiento del modelo. Las matrices de confusión reflejan que el modelo prácticamente no predice correctamente ninguna clase, con casi todos los valores en ceros y algunos aciertos marginales en categorías específicas como "Photographs / Videos / EVP". Esto sugiere que las características extraídas, compuestas por una gran cantidad de predictores (alrededor de 15,000), pueden no ser adecuadas o que el enfoque de modelado necesita ajustes más profundos, como selección de características, balanceo de clases o un método distinto de clasificación.
+
+En conjunto, el trabajo refleja la complejidad de clasificar relatos paranormales en múltiples categorías y la necesidad de explorar estrategias más robustas para mejorar la capacidad predictiva de los modelos entrenados
+
 
 # Referencias
 
