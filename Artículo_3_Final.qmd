@@ -165,7 +165,6 @@ kable(tabla1,
 
 ```
 
-
 ```{r}
 #| echo: false
 tabla2 <- data.frame(
@@ -174,7 +173,7 @@ tabla2 <- data.frame(
 )
 
 kable(tabla2,
-      caption = "Promedios de las métricas para todas las clases con el clasificador naivebayes.")
+      caption = "Promedios de las métricas para todas las clases con el clasificador e1071 y naivebayes.")
 
 ```
 
@@ -200,6 +199,26 @@ tabla4 <- data.frame(
 
 kable(tabla4,
       caption = "Matriz de confusión para la clasificación dicotómica con case_when(): Haunted Places vs Other.")
+
+```
+
+```{r}
+#| echo: false
+library(dplyr)
+library(knitr)
+
+# Crear un dataframe combinando los dos clasificadores
+promedios <- data.frame(
+  Clasificador = c("e1071", "naivebayes"),
+  Macro_Precision = c(0.0042, 0.0042),
+  Macro_Recall = c(0.0524, 0.0524),
+  Macro_F1_Score = c(0.0071, 0.0071)
+)
+
+# Mostrar tabla
+kable(promedios,
+      caption = "Comparación de métricas promedio entre los clasificadores e1071 y naivebayes.",
+      digits = 4)
 
 ```
 
@@ -249,13 +268,15 @@ veces más frecuente con *she*.
 
 El número total de relatos clasificados fue 1856, distribuidos en 20 categorías de fenómenos paranormales. La distribución por categoría fue equilibrada, con 100 relatos en la mayoría de las categorías, excepto en algunas como "Ghost Tours & Haunted Hotels" con 71 y "Haunted Items" con 46 relatos.
 
-Se construyó la matriz de confusión para evaluar el desempeño del clasificador Naïve Bayes (implementado con el paquete e1071), la cual mostró una precisión global baja (Accuracy: 0.0539), indicando dificultades para clasificar correctamente las distintas categorías.
+Para la clasificación multiclase (20 categorías): Se construyó la matriz de confusión para evaluar el desempeño del clasificador Naïve Bayes, la cual mostró una precisión global extremadamente baja (Accuracy: $0.0539$). Las métricas macro promedio fueron: Macro Precision = $0.0042$, Macro Recall = $0.0524$, y Macro F1-Score = $0.0071$. Solo algunas categorías como "Photographs / Videos / EVP" alcanzaron un Recall de $1.0000$ pero con una Precisión muy baja ($0.0563$), mientras que "Shadow People" presentó métricas consistentemente bajas (Precision = $0.0286$, Recall = $0.0476$, F1 = $0.0357$).
 
-Algunas métricas por clase destacan que para la categoría "Photographs / Videos / EVP" se alcanzó un Recall de 1, pero con una Precisión muy baja (0.0563), y para "Shadow People" la precisión y recall fueron también muy bajas. Las demás categorías presentan métricas muy pobres reflejando que el modelo tiene problemas para discriminar entre las clases.
+Para la clasificación dicotómica (Haunted Places vs Other): Al simplificar el problema a una clasificación binaria, el modelo mostró un desempeño ligeramente mejorado pero aún deficiente. Aunque logró clasificar correctamente la mayoría de los casos "Other" (528), tuvo dificultades significativas para identificar los casos de "Haunted Places", clasificando correctamente solo una pequeña fracción de los 29 casos disponibles.Las métricas macro promedio, aunque mejores que en la clasificación multiclase, siguen siendo muy bajas: Macro Precision = $0.026$, Macro Recall = $0.5$, y Macro F1-Score = $0.0495$, indicando que el modelo tiene serias limitaciones para distinguir efectivamente entre estas dos categorías.
 
-Los resultados del clasificador Naive Bayes con la distribución Poisson mostraron muy baja efectividad con métricas cercanas a cero para casi todas las clases, salvo un par con valores relativamente mejores pero aún insuficientes. Esto indica que el modelo no logró identificar correctamente las categorías de las historias en la mayoría de los casos, reflejando un desempeño global poco útil para la tarea de clasificación en este contexto.
+La comparación entre los clasificadores e1071 y naivebayes mostró resultados idénticos en ambos escenarios, indicando que ambas implementaciones del algoritmo son equivalentes para este dataset. Los resultados evidencian que el modelo tiene serias dificultades para discriminar entre múltiples categorías paranormales específicas, pero puede funcionar adecuadamente en tareas de clasificación binaria más simples.
 
-El modelo Naïve Bayes con suavizamiento Laplace (Laplace smoothing) fue evaluado mediante validación cruzada 3-fold, dando como mejor parámetro Laplace = 0 y sin kernel (usekernel = FALSE). La matriz de confusión y métricas con este suavizamiento no mejoraron la precisión global que se mantuvo en 0.0539. Los promedios macro para precisión, recall y F1-score se ubicaron alrededor de 0.0042, 0.0524 y 0.0071 respectivamente, lo cual indica un desempeño insuficiente en el contexto de clasificación multiclase con alta dimensionalidad y sparsidad.
+Por otro lado, los resultados del clasificador Naive Bayes con la distribución Poisson mostraron muy baja efectividad con métricas cercanas a cero para casi todas las clases, salvo un par con valores relativamente mejores pero aún insuficientes. Esto indica que el modelo no logró identificar correctamente las categorías de las historias en la mayoría de los casos, reflejando un desempeño global poco útil para la tarea de clasificación en este contexto.
+
+El modelo Naïve Bayes con suavizamiento Laplace (Laplace smoothing) fue evaluado mediante validación cruzada 3-fold, dando como mejor parámetro Laplace = $0$ y sin kernel (usekernel = FALSE). La matriz de confusión y métricas con este suavizamiento no mejoraron la precisión global que se mantuvo en $0.0539$. Los promedios macro para precisión, recall y F1-score se ubicaron alrededor de $0.0042$, $0.0524$ y $0.0071$ respectivamente, lo cual indica un desempeño insuficiente en el contexto de clasificación multiclase con alta dimensionalidad y sparsidad.
 
 Además, se observó que el modelo tiende a predecir mayormente algunas clases específicas, generando desbalance en las predicciones, posiblemente por la falta de ejemplos o la complejidad del corpus textual.
 
