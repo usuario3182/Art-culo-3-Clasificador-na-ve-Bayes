@@ -92,7 +92,7 @@ El procesamiento del texto se realizó con herramientas del paquete
 
 \-**Tokenización:** separación del texto en palabras, para facilitar el
 análisis cuantitativo. -**Eliminación de stop words:** remoción de
-palabras comunes y poco inforamtivas, usando una lista predefinida en R
+palabras comunes y poco informativas, usando una lista predefinida en R
 llamada **stop_words**. -**Normalización:** conversión a minúsculas,
 eliminación de signos de puntuación y caracteres especiales para
 normalizar los datos. -**Construcción de la matriz:** Generación de la
@@ -149,7 +149,7 @@ Se realizaron gráficas de frecuencia de las 10 palabras más repetidas
 por las 20 categorías. Una muestra de estas, es la primera categoría *A
 Haunted Life*:
 
-```{r}
+```{r, fig.cap="Top 10 palabras más frecuentes A Haunted Life"}
 #| echo: false
 library(tidyverse)
 library(tidytext)
@@ -159,16 +159,29 @@ library(janeaustenr)
 read_rds("objetos/diagrama_frecuencia_cat.rds")
 ```
 
+```{r fig.height=10, fig.width=12, fig.cap="Top 5 palabras más frecuentes por categoría."}
+#| echo: false
+read_rds("objetos/diagrama_top.rds")
+```
+
+
 Se comparó qué palabras seguían después de los artículos, en inglés,
 *he* y *she*:
 
-```{r}
+```{r, fig.cap="Comparación de "he" y "she en dataset"}
 #| echo: false
 diagrama= read_rds("objetos/diagrama_he_she.rds")
 diagrama 
 ```
 
+
+
+
 # Análisis de Resultados
+
+Dentro de las 20 categorías, las palabras que más se repetían (utilizando `stop_words`) fueron _time_, _house_, _bed_, _ghost_ entre otras. Esto puede indicanar que las historias dentro del conjunto de datos, sus relatos tiene relación con alguna línea temporal; casas abandonadas, habitadas o _malditas_; camas en diversos contextos; y fantasmas. A la vez, dependiendo de las categorías, hay palabras que diferencian; por ejemplo, en _Family/Friends Visits_, la palabra _mom_ es de las más comunes. Mismo efecto sucede en categorías como _Not Human Entities_, la palabra _eyes_ es frecuente, pudiendo indicar que la conexión entre figuras no antropomorfas, los ojos siguen persistiendo.   
+
+Dentro de la gráfica de _Comparación de "he" y "she en dataset_, verbos como _screamed_, _responded_ y _laid_ aparecen significativamente más con _she_, mientras que _loves_, _drove_ y _made_ se asocian más con _he_. Algunos verbos cercanos al eje central muestran un uso balanceado. Estos patrones sugieren estereotipos implícitos en los textos, donde acciones de comunicación o emocionalidad predominan con _she_ y acciones físicas o de actividad con _he_. La magnitud del sesgo se refleja en la distancia respecto a 1, siendo, por ejemplo, _screamed_ más de cuatro veces más frecuente con _she_.
 
 
 
