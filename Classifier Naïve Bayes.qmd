@@ -221,6 +221,115 @@ cat(paste("Macro F1 naivebayes:", round(macro_f1_nb, 4), "\n"))
 cat(paste("Diferencia:", round(macro_f1_nb - macro_f1_e1071, 4), "\n\n"))
 ```
 
+# Modelos con comparación dicotomizacada (case_when()) 
+
+```{r}
+library(dplyr)
+
+#crear variable dicotómica: Haunted Places vs Other
+model_data = model_data %>%
+  mutate(category_binary = case_when(
+    category == "Haunted Places" ~ "Haunted Places",
+    TRUE ~ "Other"
+  ))
+
+#revisar conteos por clase
+table(model_data$category_binary)
+```
+
+### Para Naïve Bayes con e1071
+
+```{r}
+
+NB_e1071 = naiveBayes(category_binary ~ ., data = paranormal_train)
+
+y_pred_e1071 = predict(NB_e1071, newdata = paranormal_test)
+y_true = paranormal_test$category_binary
+
+# Asegurar que las clases coincidan
+all_levels = union(levels(as.factor(y_true)), levels(as.factor(y_pred_e1071)))
+y_pred_e1071 = factor(y_pred_e1071, levels = all_levels)
+y_true = factor(y_true, levels = all_levels)
+
+# Matriz de confusión
+cm_e1071 = table(Actual = y_true, Predicted = y_pred_e1071)
+print(cm_e1071)
+
+# Accuracy
+accuracy_e1071 = sum(diag(cm_e1071)) / sum(cm_e1071)
+print(paste("Accuracy e1071:", round(accuracy_e1071, 4)))
+
+```
+
+```{r}
+classes_nb <- rownames(cm_e1071)
+metrics_list_nb <- list()
+cat("Métricas por clase (naivebayes e1071 con case_when()):\n")
+for (class in classes_nb) {
+  metrics <- calculate_metrics(cm_e1071, class)
+  metrics_list_nb[[class]] <- metrics
+  
+  cat(paste("Clase:", class, "\n"))
+  cat(paste("  Precision:", round(metrics$precision, 4), "\n"))
+  cat(paste("  Recall:", round(metrics$recall, 4), "\n"))
+  cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
+}
+```
+
+```{r}
+macro_precision_nb <- mean(sapply(metrics_list_nb, function(x) x$precision), na.rm = TRUE)
+macro_recall_nb <- mean(sapply(metrics_list_nb, function(x) x$recall), na.rm = TRUE)
+macro_f1_nb <- mean(sapply(metrics_list_nb, function(x) x$f1), na.rm = TRUE)
+
+cat("Promedios (naivebayes e1071 con case_when()):\n")
+cat(paste("  Macro Precision:", round(macro_precision_nb, 4), "\n"))
+cat(paste("  Macro Recall:", round(macro_recall_nb, 4), "\n"))
+cat(paste("  Macro F1-Score:", round(macro_f1_nb, 4), "\n\n"))
+```
+
+### Entrenar Naïve Bayes con naivebayes
+
+```{r}
+library(naivebayes)
+
+NB_nb <- naive_bayes(category_binary ~ ., data = paranormal_train)
+y_pred_nb <- predict(NB_nb, newdata = paranormal_test)
+y_pred_nb <- factor(y_pred_nb, levels = all_levels)
+
+cm_nb <- table(Actual = y_true, Predicted = y_pred_nb)
+accuracy_nb <- sum(diag(cm_nb)) / sum(cm_nb)
+
+print(cm_nb)
+print(paste("Accuracy:", round(accuracy_nb, 4)))
+```
+
+```{r}
+
+classes_nb <- rownames(cm_nb)
+metrics_list_nb <- list()
+cat("Métricas por clase (naivebayes con case_when()):\n")
+for (class in classes_nb) {
+  metrics <- calculate_metrics(cm_nb, class)
+  metrics_list_nb[[class]] <- metrics
+  
+  cat(paste("Clase:", class, "\n"))
+  cat(paste("  Precision:", round(metrics$precision, 4), "\n"))
+  cat(paste("  Recall:", round(metrics$recall, 4), "\n"))
+  cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
+}
+```
+
+```{r}
+macro_precision_nb <- mean(sapply(metrics_list_nb, function(x) x$precision), na.rm = TRUE)
+macro_recall_nb <- mean(sapply(metrics_list_nb, function(x) x$recall), na.rm = TRUE)
+macro_f1_nb <- mean(sapply(metrics_list_nb, function(x) x$f1), na.rm = TRUE)
+
+cat("Promedios (naivebayes con case_when()):\n")
+cat(paste("  Macro Precision:", round(macro_precision_nb, 4), "\n"))
+cat(paste("  Macro Recall:", round(macro_recall_nb, 4), "\n"))
+cat(paste("  Macro F1-Score:", round(macro_f1_nb, 4), "\n\n"))
+```
+
 ## Con distribución Poisson
 
 ```{r}
