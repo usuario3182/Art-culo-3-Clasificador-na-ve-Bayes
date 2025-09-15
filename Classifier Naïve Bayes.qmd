@@ -12,7 +12,9 @@ library(e1071)
 library(janitor)
 library(Matrix)
 ```
+
 # Cargar bases de datos
+
 ```{r}
 data = read_delim("prueba_all_stories.csv")
 ```
@@ -52,6 +54,7 @@ print(paste("Número total de relatos:", nrow(data)))
 print("Distribución por categoría:")
 print(table(data$category))
 ```
+
 # Cargar la sparse matrix
 
 ```{r}
@@ -140,7 +143,9 @@ for (class in classes) {
   cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
 }
 ```
+
 ## Métricas promedio (macro average)
+
 ```{r}
 macro_precision_e1071 <- mean(sapply(metrics_list, function(x) x$precision), na.rm = TRUE)
 macro_recall_e1071 <- mean(sapply(metrics_list, function(x) x$recall), na.rm = TRUE)
@@ -151,6 +156,7 @@ cat(paste("  Macro Precision:", round(macro_precision_e1071, 4), "\n"))
 cat(paste("  Macro Recall:", round(macro_recall_e1071, 4), "\n"))
 cat(paste("  Macro F1-Score:", round(macro_f1_e1071, 4), "\n\n"))
 ```
+
 # Clasificador Naïve Bayes con library(naivebayes)
 
 ```{r}
@@ -158,6 +164,7 @@ library(naivebayes)
 ```
 
 ## División en training y test sets con naivebayes
+
 ```{r}
 NB_naivebayes <- naive_bayes(category ~ ., data = paranormal_train)
 ```
@@ -198,6 +205,7 @@ for (class in classes_nb) {
 ```
 
 ## Promedios naivebayes
+
 ```{r}
 macro_precision_nb <- mean(sapply(metrics_list_nb, function(x) x$precision), na.rm = TRUE)
 macro_recall_nb <- mean(sapply(metrics_list_nb, function(x) x$recall), na.rm = TRUE)
@@ -221,7 +229,7 @@ cat(paste("Macro F1 naivebayes:", round(macro_f1_nb, 4), "\n"))
 cat(paste("Diferencia:", round(macro_f1_nb - macro_f1_e1071, 4), "\n\n"))
 ```
 
-# Modelos con comparación dicotomizacada (case_when()) 
+# Modelos con comparación dicotomizacada (case_when())
 
 ```{r}
 library(dplyr)
@@ -360,7 +368,6 @@ print(paste("Accuracy (naivebayes Poisson):", round(accuracy_nb_poisson, 4)))
 metrics_list_nb_poisson <- list()
 ```
 
-
 ```{r}
 cat("Métricas por clase (naivebayes Poisson):\n")
 for (class in rownames(cm_nb_poisson)) {
@@ -383,7 +390,7 @@ cat(paste("  Macro Recall:", round(macro_recall_nb_poisson, 4), "\n"))
 cat(paste("  Macro F1-Score:", round(macro_f1_nb_poisson, 4), "\n\n"))
 ```
 
-# Laplace 
+# Laplace
 
 ```{r}
 # Instalar caret si no está instalado
@@ -393,14 +400,12 @@ library(e1071)
 library(dplyr)
 ```
 
-
 ```{r}
 set.seed(1234)
 
 train_control <- trainControl(method = "cv", number = 3)
 
 ```
-
 
 ```{r}
 # Grid para probar varios valores del parámetro laplace (suavizado)
@@ -423,7 +428,6 @@ nb_laplace_tuned <- train(
   metric = "Accuracy"
 )
 ```
-
 
 ```{r}
 print(nb_laplace_tuned)
