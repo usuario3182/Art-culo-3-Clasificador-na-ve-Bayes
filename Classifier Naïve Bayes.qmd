@@ -22,8 +22,6 @@ head(data)
 summary(data)
 ```
 
-# Cargar sparse matrix
-
 ```{r}
 matrix = read_delim("matrix_paranormal.csv")
 ```
@@ -60,7 +58,9 @@ print(table(data$category))
 model_data <- matrix
 ```
 
-# División en training y test sets
+# Clasificador Naïve Bayes con library(e071)
+
+## División en training y test sets
 
 ```{r}
 set.seed(1234)
@@ -72,7 +72,7 @@ paranormal_train <- training(paranormal_split)
 paranormal_test <- testing(paranormal_split)
 ```
 
-# Entrenar el clasificador Naïve Bayes
+## Entrenar el clasificador
 
 ```{r}
 NB_pn <- naiveBayes(category ~ ., data = paranormal_train)
@@ -89,17 +89,17 @@ y_pred <- factor(y_pred, levels = all_levels)
 y_true <- factor(y_true, levels = all_levels)
 ```
 
-# Evaluación del modelo
+## Evaluación del modelo
 
 ```{r}
 cm <- table(Actual = y_true, Predicted = y_pred)
-print("Matriz de Confusión:")
+print("Matriz de Confusión (e1071):")
 print(cm)
 ```
 
 ```{r}
 accuracy <- sum(diag(cm)) / sum(cm)
-print(paste("Accuracy:", round(accuracy, 4)))
+print(paste("Accuracy (e1071):", round(accuracy, 4)))
 ```
 
 ```{r}
@@ -140,16 +140,85 @@ for (class in classes) {
   cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
 }
 ```
-# Métricas promedio (macro average)
+## Métricas promedio (macro average)
 ```{r}
-macro_precision <- mean(sapply(metrics_list, function(x) x$precision), na.rm = TRUE)
-macro_recall <- mean(sapply(metrics_list, function(x) x$recall), na.rm = TRUE)
-macro_f1 <- mean(sapply(metrics_list, function(x) x$f1), na.rm = TRUE)
+macro_precision_e1071 <- mean(sapply(metrics_list, function(x) x$precision), na.rm = TRUE)
+macro_recall_e1071 <- mean(sapply(metrics_list, function(x) x$recall), na.rm = TRUE)
+macro_f1_e1071 <- mean(sapply(metrics_list, function(x) x$f1), na.rm = TRUE)
 
-cat("Métricas Macro-Average:\n")
-cat(paste("  Macro Precision:", round(macro_precision, 4), "\n"))
-cat(paste("  Macro Recall:", round(macro_recall, 4), "\n"))
-cat(paste("  Macro F1-Score:", round(macro_f1, 4), "\n"))
+cat("Promedios (e1071):\n")
+cat(paste("  Macro Precision:", round(macro_precision_e1071, 4), "\n"))
+cat(paste("  Macro Recall:", round(macro_recall_e1071, 4), "\n"))
+cat(paste("  Macro F1-Score:", round(macro_f1_e1071, 4), "\n\n"))
+```
+# Clasificador Naïve Bayes con library(naivebayes)
+
+```{r}
+library(naivebayes)
+```
+
+## División en training y test sets con naivebayes
+```{r}
+NB_naivebayes <- naive_bayes(category ~ ., data = paranormal_train)
+```
+
+## Entrenar el clasificador naivebayes
+
+```{r}
+y_pred_nb <- predict(NB_naivebayes, newdata = paranormal_test)
+y_pred_nb <- factor(y_pred_nb, levels = all_levels)
+```
+
+## Evaluación con naivebayes
+
+```{r}
+cm_nb <- table(Actual = y_true, Predicted = y_pred_nb)
+print("Matriz de Confusión (naivebayes):")
+print(cm_nb)
+```
+
+```{r}
+accuracy_nb <- sum(diag(cm_nb)) / sum(cm_nb)
+print(paste("Accuracy (naivebayes):", round(accuracy_nb, 4)))
+```
+
+```{r}
+classes_nb <- rownames(cm_nb)
+metrics_list_nb <- list()
+cat("Métricas por clase (naivebayes):\n")
+for (class in classes_nb) {
+  metrics <- calculate_metrics(cm_nb, class)
+  metrics_list_nb[[class]] <- metrics
+  
+  cat(paste("Clase:", class, "\n"))
+  cat(paste("  Precision:", round(metrics$precision, 4), "\n"))
+  cat(paste("  Recall:", round(metrics$recall, 4), "\n"))
+  cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
+}
+```
+
+## Promedios naivebayes
+```{r}
+macro_precision_nb <- mean(sapply(metrics_list_nb, function(x) x$precision), na.rm = TRUE)
+macro_recall_nb <- mean(sapply(metrics_list_nb, function(x) x$recall), na.rm = TRUE)
+macro_f1_nb <- mean(sapply(metrics_list_nb, function(x) x$f1), na.rm = TRUE)
+
+cat("Promedios (naivebayes):\n")
+cat(paste("  Macro Precision:", round(macro_precision_nb, 4), "\n"))
+cat(paste("  Macro Recall:", round(macro_recall_nb, 4), "\n"))
+cat(paste("  Macro F1-Score:", round(macro_f1_nb, 4), "\n\n"))
+```
+
+# Comparación entre clasificadores e1071 y naivebayes
+
+```{r}
+cat(paste("Accuracy e1071:", round(accuracy, 4), "\n"))
+cat(paste("Accuracy naivebayes:", round(accuracy_nb, 4), "\n"))
+cat(paste("Diferencia:", round(accuracy_nb - accuracy, 4), "\n\n"))
+
+cat(paste("Macro F1 e1071:", round(macro_f1_e1071, 4), "\n"))
+cat(paste("Macro F1 naivebayes:", round(macro_f1_nb, 4), "\n"))
+cat(paste("Diferencia:", round(macro_f1_nb - macro_f1_e1071, 4), "\n\n"))
 ```
 
 
