@@ -221,4 +221,56 @@ cat(paste("Macro F1 naivebayes:", round(macro_f1_nb, 4), "\n"))
 cat(paste("Diferencia:", round(macro_f1_nb - macro_f1_e1071, 4), "\n\n"))
 ```
 
+## Con distribución Poisson
+
+```{r}
+library(naivebayes)
+```
+
+```{r}
+NB_naivebayes_poisson <- naive_bayes(category ~ ., data = paranormal_train, usepoisson = TRUE)
+```
+
+```{r}
+y_pred_nb_poisson <- predict(NB_naivebayes_poisson, newdata = paranormal_test)
+y_pred_nb_poisson <- factor(y_pred_nb_poisson, levels = all_levels)
+```
+
+```{r}
+cm_nb_poisson <- table(Actual = y_true, Predicted = y_pred_nb_poisson)
+print("Matriz de Confusión (naivebayes Poisson):")
+print(cm_nb_poisson)
+```
+
+```{r}
+accuracy_nb_poisson <- sum(diag(cm_nb_poisson)) / sum(cm_nb_poisson)
+print(paste("Accuracy (naivebayes Poisson):", round(accuracy_nb_poisson, 4)))
+```
+
+```{r}
+metrics_list_nb_poisson <- list()
+```
+
+
+```{r}
+cat("Métricas por clase (naivebayes Poisson):\n")
+for (class in rownames(cm_nb_poisson)) {
+  metrics <- calculate_metrics(cm_nb_poisson, class)
+  metrics_list_nb_poisson[[class]] <- metrics
+  cat(paste("Clase:", class, "\n"))
+  cat(paste("  Precision:", round(metrics$precision, 4), "\n"))
+  cat(paste("  Recall:", round(metrics$recall, 4), "\n"))
+  cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
+}
+```
+
+```{r}
+macro_precision_nb_poisson <- mean(sapply(metrics_list_nb_poisson, function(x) x$precision), na.rm = TRUE)
+macro_recall_nb_poisson <- mean(sapply(metrics_list_nb_poisson, function(x) x$recall), na.rm = TRUE)
+macro_f1_nb_poisson <- mean(sapply(metrics_list_nb_poisson, function(x) x$f1), na.rm = TRUE)
+cat("Promedios (naivebayes Poisson):\n")
+cat(paste("  Macro Precision:", round(macro_precision_nb_poisson, 4), "\n"))
+cat(paste("  Macro Recall:", round(macro_recall_nb_poisson, 4), "\n"))
+cat(paste("  Macro F1-Score:", round(macro_f1_nb_poisson, 4), "\n\n"))
+```
 
