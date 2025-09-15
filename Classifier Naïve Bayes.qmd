@@ -274,3 +274,124 @@ cat(paste("  Macro Recall:", round(macro_recall_nb_poisson, 4), "\n"))
 cat(paste("  Macro F1-Score:", round(macro_f1_nb_poisson, 4), "\n\n"))
 ```
 
+# Laplace 
+
+```{r}
+# Instalar caret si no está instalado
+if (!require(caret)) install.packages("caret")
+library(caret)
+library(e1071)
+library(dplyr)
+```
+
+
+```{r}
+set.seed(1234)
+
+train_control <- trainControl(method = "cv", number = 3)
+
+```
+
+
+```{r}
+# Grid para probar varios valores del parámetro laplace (suavizado)
+laplace_grid <- expand.grid(
+  laplace = seq(0, 2, by = 0.25),
+  usekernel = FALSE,
+  adjust = 1
+)
+
+```
+
+```{r}
+# Entrenar el modelo Naïve Bayes buscando el mejor laplace
+nb_laplace_tuned <- train(
+  category ~ ., 
+  data = paranormal_train,
+  method = "naive_bayes",
+  trControl = train_control,
+  tuneGrid = laplace_grid,
+  metric = "Accuracy"
+)
+```
+
+
+```{r}
+print(nb_laplace_tuned)
+cat("Mejor Laplace:", nb_laplace_tuned$bestTune$laplace, "\n")
+```
+
+```{r}
+# Predecir en conjunto de prueba
+y_pred_laplace <- predict(nb_laplace_tuned, newdata = paranormal_test)
+y_true <- paranormal_test$category
+```
+
+```{r}
+# Asegurar que se toman todos los niveles para evitar warnings
+all_levels <- union(levels(as.factor(y_true)), levels(as.factor(y_pred_laplace)))
+y_pred_laplace <- factor(y_pred_laplace, levels = all_levels)
+y_true <- factor(y_true, levels = all_levels)
+```
+
+```{r}
+# Matriz de confusión
+cm_laplace <- table(Actual = y_true, Predicted = y_pred_laplace)
+print("Matriz de Confusión (Laplace smoothing):")
+print(cm_laplace)
+```
+
+```{r}
+# Calcular accuracy
+accuracy_laplace <- sum(diag(cm_laplace)) / sum(cm_laplace)
+print(paste("Accuracy (Laplace smoothing):", round(accuracy_laplace, 4)))
+
+```
+
+```{r}
+# Función para calcular precisión, recall y F1 por clase
+calculate_metrics <- function(cm, class_name) {
+  if (!class_name %in% rownames(cm)) {
+    return(list(precision = NA, recall = NA, f1 = NA))
+  }
+  class_idx <- which(rownames(cm) == class_name)
+  tp <- cm[class_idx, class_idx]
+  fp <- sum(cm[, class_idx]) - tp
+  fn <- sum(cm[class_idx, ]) - tp
+  precision <- ifelse(tp + fp == 0, 0, tp / (tp + fp))
+  recall <- ifelse(tp + fn == 0, 0, tp / (tp + fn))
+  f1 <- ifelse(precision + recall == 0, 0, 2 * precision * recall / (precision + recall))
+  return(list(precision = precision, recall = recall, f1 = f1))
+}
+
+```
+
+```{r}
+# Calcular métricas por clase
+classes <- rownames(cm_laplace)
+metrics_list_laplace <- list()
+cat("Métricas por clase (Laplace smoothing):\n")
+for (class in classes) {
+  metrics <- calculate_metrics(cm_laplace, class)
+  metrics_list_laplace[[class]] <- metrics
+  cat(paste("Clase:", class, "\n"))
+  cat(paste("  Precision:", round(metrics$precision, 4), "\n"))
+  cat(paste("  Recall:", round(metrics$recall, 4), "\n"))
+  cat(paste("  F1-Score:", round(metrics$f1, 4), "\n\n"))
+}
+```
+
+```{r}
+# Calcular promedios macro (promedio simple de todas las clases)
+macro_precision_laplace <- mean(sapply(metrics_list_laplace, function(x) x$precision), na.rm = TRUE)
+macro_recall_laplace <- mean(sapply(metrics_list_laplace, function(x) x$recall), na.rm = TRUE)
+macro_f1_laplace <- mean(sapply(metrics_list_laplace, function(x) x$f1), na.rm = TRUE)
+
+```
+
+```{r}
+cat("Promedios (Laplace smoothing):\n")
+cat(paste("  Macro Precision:", round(macro_precision_laplace, 4), "\n"))
+cat(paste("  Macro Recall:", round(macro_recall_laplace, 4), "\n"))
+cat(paste("  Macro F1-Score:", round(macro_f1_laplace, 4), "\n\n"))
+```
